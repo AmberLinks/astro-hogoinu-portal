@@ -1,7 +1,9 @@
 # GitHub push flow
+```sh
 git add .
 git commit -m "Update search functionality"
 git push
+```
 
 
 # Astro Starter Kit: Minimal
