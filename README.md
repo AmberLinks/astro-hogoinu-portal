@@ -1,9 +1,6 @@
 # GitHub push flow
-## 1. 変更をステージング
 git add .
-## 2. 変更内容をコミット
 git commit -m "Update search functionality"
-## 3. GitHubにプッシュ
 git push
 
 
