@@ -1,16 +1,169 @@
 ---
+import { client } from '../lib/microcms';
+import type { Dog, MicroCMSListResponse } from '../types';
+import MainLayout from '../layouts/MainLayout.astro'; // 共通レイアウト
 
+// microCMSからデータを取得
+const response = await client.get<MicroCMSListResponse<Dog>>({
+  endpoint: 'dogs', 
+  queries: { 
+    limit: 100, // 検索はJSで行うため、100件まで取得
+    orders: '-publishedAt',
+    depth: 1 // 団体(group)の情報も取得
+  }
+});
+const dogs = response.contents;
+
+// 仮アイコンのパス (publicフォルダに配置)
+const placeholderIcon = "/dog-placeholder.svg"; 
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<MainLayout title="保護犬一覧">
+  <h1 class="text-3xl font-bold mb-6">保護犬一覧</h1>
+
+  <form id="search-form" class="bg-white p-6 rounded-lg shadow-md mb-8 space-y-4">
+    <h2 class="text-xl font-semibold mb-2">条件で探す</h2>
+    
+    <div class="mb-4">
+      <label for="search-keyword" class="block text-sm font-medium text-gray-700">フリーワード</label>
+      <input 
+        type="text" 
+        id="search-keyword" 
+        placeholder="名前、年齢、紹介文など (例: ポチ, 5歳, 元気)"
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+      />
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      
+      <div>
+        <label for="search-breed" class="block text-sm font-medium text-gray-700">犬種</label>
+        <select id="search-breed" name="breed" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+          <option value="">すべての犬種</option>
+          <option value="MIX">MIX</option>
+          <option value="柴犬">柴犬</option>
+          <option value="トイ・プードル">トイ・プードル</option>
+          <option value="チワワ">チワワ</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="search-gender" class="block text-sm font-medium text-gray-700">性別</label>
+        <select id="search-gender" name="gender" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+          <option value="">すべて</option>
+          <option value="男の子（未去勢）">男の子（未去勢）</option>
+          <option value="男の子（去勢済）">男の子（去勢済）</option>
+          <option value="女の子（未避妊）">女の子（未避妊）</option>
+          <option value="女の子（避妊済）">女の子（避妊済）</option>
+          <option value="不明">不明</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="search-status" class="block text-sm font-medium text-gray-700">ステータス</label>
+        <select id="search-status" name="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+          <option value="">すべて</option>
+          <option value="募集中">募集中</option>
+          <option value="トライアル中">トライアル中</option>
+          <option value="ケア中">ケア中</option>
+          <option value="掲載終了">掲載終了</option>
+        </select>
+      </div>
+      
+    </div>
+  </form>
+
+  <div id="dog-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    
+    {dogs.map(dog => (
+      <a 
+        href={`/dogs/${dog.id}/`} 
+        class="dog-card bg-white rounded-lg shadow-lg overflow-hidden transition-transform transform hover:scale-105"
+        
+        data-breed={dog.breed || ''}
+        data-gender={dog.gender || ''}
+        data-status={dog.status || ''}
+        
+        data-name={dog.name || ''}
+        data-age={dog.age || ''}
+        data-description={(dog.description || '').replace(/<[^>]+>/g, '')}
+      >
+        <img 
+          src={dog.image_url || placeholderIcon} 
+          alt={dog.name}
+          class="w-full h-48 object-cover"
+        />
+        
+        <div class="p-4">
+          <h2 class="text-xl font-bold text-blue-800 mb-2">{dog.name}</h2>
+          <div class="space-y-1 text-gray-700">
+            <p><strong>性別:</strong> {dog.gender || '未設定'}</p>
+            <p><strong>年齢:</strong> {dog.age || '不明'}</p>
+            <p><strong>犬種:</strong> {dog.breed || 'MIX / 不明'}</p>
+          </div>
+          
+          {dog.status && (
+            <div class="mt-4">
+              <span class="inline-block bg-green-200 text-green-800 text-xs px-2 py-1 rounded-full">
+                {dog.status}
+              </span>
+            </div>
+          )}
+        </div>
+      </a>
+    ))}
+    
+  </div>
+</MainLayout>
+
+<script>
+  function filterDogs() {
+    // 1. フォームの入力値を取得
+    const keywordValue = (document.getElementById('search-keyword') as HTMLInputElement).value.toLowerCase();
+    const breedValue = (document.getElementById('search-breed') as HTMLSelectElement).value;
+    const genderValue = (document.getElementById('search-gender') as HTMLSelectElement).value;
+    const statusValue = (document.getElementById('search-status') as HTMLSelectElement).value;
+
+    const cards = document.querySelectorAll('.dog-card');
+
+    cards.forEach(card => {
+      const dogCard = card as HTMLElement;
+
+      // 2. カードの data-* 属性の値を取得
+      const cardBreed = dogCard.dataset.breed || '';
+      const cardGender = dogCard.dataset.gender || '';
+      const cardStatus = dogCard.dataset.status || '';
+      
+      // フリー検索対象の属性 (小文字に統一)
+      const cardName = (dogCard.dataset.name || '').toLowerCase();
+      const cardAge = (dogCard.dataset.age || '').toLowerCase();
+      const cardDescription = (dogCard.dataset.description || '').toLowerCase();
+
+      // 3. 条件判定 (選択式)
+      const isBreedMatch = (breedValue === "") || (cardBreed === breedValue);
+      const isGenderMatch = (genderValue === "") || (cardGender === genderValue);
+      const isStatusMatch = (statusValue === "") || (cardStatus === statusValue);
+
+      // 4. 条件判定 (フリー入力・部分一致)
+      const isKeywordMatch = (keywordValue === "") || 
+                             (cardName.includes(keywordValue)) ||
+                             (cardAge.includes(keywordValue)) ||
+                             (cardDescription.includes(keywordValue));
+
+      // 5. すべての条件に一致すれば表示
+      if (isBreedMatch && isGenderMatch && isStatusMatch && isKeywordMatch) {
+        dogCard.style.display = 'block';
+      } else {
+        dogCard.style.display = 'none';
+      }
+    });
+  }
+
+  // 6. イベントリスナーを追加
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('search-keyword')?.addEventListener('input', filterDogs);
+    document.getElementById('search-breed')?.addEventListener('input', filterDogs);
+    document.getElementById('search-gender')?.addEventListener('input', filterDogs);
+    document.getElementById('search-status')?.addEventListener('input', filterDogs);
+  });
+</script>

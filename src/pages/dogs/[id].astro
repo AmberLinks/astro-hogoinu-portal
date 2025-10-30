@@ -1,0 +1,85 @@
+---
+import { client } from '../../lib/microcms';
+import type { Dog } from '../../types'; 
+import MainLayout from '../../layouts/MainLayout.astro'; // 共通レイアウト
+
+// 1. getStaticPaths: ビルド時に実行され、ページを生成
+// (エラー修正済: client.getAllContents を使用)
+export async function getStaticPaths() {
+  const response = await client.getAllContents({
+    endpoint: 'dogs',
+    queries: { 
+      fields: 'id' // IDのみ取得
+    }
+  });
+
+  return response.map((dog) => ({
+    params: { id: dog.id },
+  }));
+}
+
+// 2. ページコンポーネント
+const { id } = Astro.params;
+let dog: Dog | null = null;
+try {
+  dog = await client.get<Dog>({
+    endpoint: 'dogs',
+    contentId: id,
+    queries: { depth: 2 } // 参照コンテンツ(group)も展開して取得
+  });
+} catch (e) {
+  console.error(e);
+}
+
+// 仮アイコンのパス
+const placeholderIcon = "/dog-placeholder.svg";
+---
+
+<MainLayout title={dog ? dog.name : '詳細'}>
+  
+  {dog ? (
+    <article class="bg-white shadow-lg rounded-lg overflow-hidden max-w-4xl mx-auto">
+      
+      <img 
+        src={dog.image_url || placeholderIcon} 
+        alt={dog.name} 
+        class="w-full h-80 object-cover" 
+      />
+      
+      <div class="p-6 md:p-8">
+        <h1 class="text-4xl font-bold text-blue-800 mb-4">{dog.name}</h1>
+        
+        {dog.status && (
+          <span class="inline-block bg-green-200 text-green-800 text-lg px-4 py-1 rounded-full mb-6">
+            {dog.status}
+          </span>
+        )}
+        
+        <h2 class="text-2xl font-semibold mb-3">基本情報</h2>
+        <ul class="grid grid-cols-2 gap-4 mb-6">
+          <li><strong>性別:</strong> {dog.gender || '未設定'}</li>
+          <li><strong>年齢:</strong> {dog.age || '不明'}</li>
+          <li><strong>犬種:</strong> {dog.breed || 'MIX / 不明'}</li>
+        </ul>
+        
+        {dog.group && (
+          <div class="mb-6 p-4 bg-gray-50 rounded-md">
+            <h2 class="text-xl font-semibold mb-2">所属団体</h2>
+            <p>{dog.group.group_name}</p>
+          </div>
+        )}
+
+        {dog.description && (
+          <section>
+            <h2 class="text-2xl font-semibold mb-3">紹介</h2>
+            <div class="prose max-w-none" set:html={dog.description} />
+          </section>
+        )}
+      </div>
+      
+    </article>
+  ) : (
+    <p>犬の情報が見つかりませんでした。</p>
+  )}
+  
+</MainLayout>
