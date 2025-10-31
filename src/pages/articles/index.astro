@@ -25,20 +25,20 @@ function formatDate(dateString: string) {
 
 <MainLayout title="記事一覧">
   
-  <section class="text-center mb-12">
-    <h1 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600 mb-4">
+  <section class="text-center mb-10 md:mb-12">
+    <h1 class="text-2xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600 mb-4">
       記事一覧
     </h1>
-    <p class="text-gray-600 text-lg md:text-xl max-w-2xl mx-auto">
+    <p class="text-base md:text-xl text-gray-600 max-w-2xl mx-auto">
       保護犬たちのこと、イベントの告知などを発信します。
     </p>
   </section>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
     {articles.map(article => (
       <a 
         href={`/articles/${article.id}/`}
-        class="dog-card group bg-white rounded-2xl shadow-md hover:shadow-2xl overflow-hidden transition-all duration-300 transform hover:-translate-y-2 border-2 border-transparent hover:border-orange-300"
+        class="dog-card group bg-white rounded-2xl shadow-md hover:shadow-2xl overflow-hidden transition-all duration-300 transform hover:-translate-y-1 border-2 border-transparent hover:border-orange-300"
       >
         <div class="relative overflow-hidden aspect-video">
           <img 
@@ -48,12 +48,12 @@ function formatDate(dateString: string) {
           />
         </div>
         
-        <div class="p-6">
-          <p class="text-sm text-gray-500 mb-2">{formatDate(article.publishedAt)}</p>
-          <h2 class="text-xl font-bold text-gray-800 mb-3 group-hover:text-orange-600 transition-colors">
+        <div class="p-4 md:p-6">
+          <p class="text-xs md:text-sm text-gray-500 mb-2">{formatDate(article.publishedAt)}</p>
+          <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-3 group-hover:text-orange-600 transition-colors line-clamp-3">
             {article.title}
           </h2>
-          </div>
+        </div>
       </a>
     ))}
   </div>

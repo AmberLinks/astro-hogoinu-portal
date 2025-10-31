@@ -99,11 +99,11 @@ ${groupName} 様
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
             </svg>
           </li>
-          <li class="text-gray-800 font-medium">{dog.name}</li>
+          <li class="text-gray-800 font-medium line-clamp-1">{dog.name}</li>
         </ol>
       </nav>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 
 mb-8">
         
         <div class="space-y-4">
@@ -153,18 +153,18 @@ right-4">
         </div>
 
         
-<div class="space-y-6">
+<div class="space-y-4 md:space-y-6">
           
-          <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 border-2 border-orange-100">
-            <h1 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600 mb-2">
+          <div class="bg-white rounded-2xl shadow-xl p-5 md:p-8 border-2 border-orange-100">
+            <h1 class="text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600 mb-2">
               {dog.name}
             </h1>
   
           <p class="text-gray-500 text-sm">ID: {dog.id}</p>
           </div>
 
-          <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 border-2 border-orange-100">
-            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+          <div class="bg-white rounded-2xl shadow-xl p-5 md:p-8 border-2 border-orange-100">
+            <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-6 flex items-center">
               <svg class="w-6 h-6 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -176,26 +176,26 @@ right-4">
           
     
               <div class="flex items-start border-b border-gray-100 pb-4">
-                <div class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">犬種</div>
-                <div class="flex-1 font-semibold text-gray-800 text-lg">
+                <div class="w-20 md:w-24 flex-shrink-0 text-gray-500 font-medium text-sm">犬種</div>
+                <div class="flex-1 font-semibold text-gray-800 text-base md:text-lg">
                   {normalizeField(dog.breed) ||
 'MIX / 不明'}
                 </div>
               </div>
               
               <div class="flex items-start border-b border-gray-100 pb-4">
-                <div class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">性別</div>
+                <div class="w-20 md:w-24 flex-shrink-0 text-gray-500 font-medium text-sm">性別</div>
               
-  <div class="flex-1 font-semibold text-gray-800 text-lg">
+  <div class="flex-1 font-semibold text-gray-800 text-base md:text-lg">
                   {normalizeField(dog.gender) ||
 '未設定'}
                 </div>
               </div>
               
               <div class="flex items-start border-b border-gray-100 pb-4">
-                <div class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">年齢</div>
+                <div class="w-20 md:w-24 flex-shrink-0 text-gray-500 font-medium text-sm">年齢</div>
                 
-<div class="flex-1 font-semibold text-gray-800 text-lg">
+<div class="flex-1 font-semibold text-gray-800 text-base md:text-lg">
                   {dog.age ||
 '不明'}
                 </div>
@@ -204,8 +204,8 @@ right-4">
               {dog.bw && (
                 <div class="flex items-start border-b border-gray-100 pb-4">
                   <div 
-class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">体重</div>
-                  <div class="flex-1 font-semibold text-gray-800 text-lg">
+class="w-20 md:w-24 flex-shrink-0 text-gray-500 font-medium text-sm">体重</div>
+                  <div class="flex-1 font-semibold text-gray-800 text-base md:text-lg">
                     {dog.bw}
                   </div>
                 </div>
@@ -216,8 +216,8 @@ class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">体重</div>
           </div>
 
           {dog.group && (
-            <div class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl shadow-lg p-6 border-2 border-orange-200">
-              <h2 class="text-lg font-bold text-gray-800 mb-3 flex items-center">
+            <div class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl shadow-lg p-5 md:p-6 border-2 border-orange-200">
+              <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-3 flex items-center">
       
           <svg class="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
@@ -226,7 +226,7 @@ class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">体重</div>
 </svg>
                 所属団体
               </h2>
-              <p class="text-gray-800 font-semibold text-lg mb-4">{dog.group.group_name}</p>
+              <p class="text-gray-800 font-semibold text-base md:text-lg mb-4">{dog.group.group_name}</p>
 
               <div class="flex flex-col sm:flex-row gap-3">
                 {dog.group.source_url && (
@@ -235,7 +235,7 @@ class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">体重</div>
 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-white hover:bg-orange-50 border border-orange-300 text-orange-600 rounded-lg font-medium transition-colors text-sm"
+                    class="flex-1 inline-flex items-center justify-center px-4 py-2.5 md:py-2 bg-white hover:bg-orange-50 border border-orange-300 text-orange-600 rounded-lg font-medium transition-colors text-sm"
                   >
                     団体サイトを見る
     
@@ -251,7 +251,7 @@ class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">体重</div>
                     href={dog.sns_url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-white hover:bg-blue-50 border border-blue-300 text-blue-600 rounded-lg font-medium transition-colors text-sm"
+                    class="flex-1 inline-flex items-center justify-center px-4 py-2.5 md:py-2 bg-white hover:bg-blue-50 border border-blue-300 text-blue-600 rounded-lg font-medium transition-colors text-sm"
                   >
                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
@@ -263,8 +263,8 @@ class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">体重</div>
             </div>
           )}
 
-          <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 md:p-8 border-2 border-blue-200">
-            <h3 class="font-bold text-lg text-blue-800 mb-3 flex items-center">
+          <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-5 md:p-8 border-2 border-blue-200">
+            <h3 class="font-bold text-base md:text-lg text-blue-800 mb-3 flex items-center">
               <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 
 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
@@ -294,6 +294,7 @@ class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">体重</div>
                 </svg>
                 ステータスが「募集中」以外の場合は譲渡できません
               </li>
+              
               <li class="flex items-start">
                 <svg class="w-4 h-4 mr-2 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
          
@@ -304,16 +305,15 @@ class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">体重</div>
             </ul>
           </div>
 
-
-          <div class="bg-white rounded-2xl shadow-xl p-6 border-2 border-orange-100">
+          <div class="bg-white rounded-2xl shadow-xl p-5 md:p-6 border-2 border-orange-100">
             
             {mailtoHref ? (
               <a
                 href={mailtoHref}
-                class="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-lg"
+                class="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-3 md:py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-base md:text-lg"
               >
         
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                 </svg>
                 <span>この子について問い合わせる</span>
@@ -321,9 +321,9 @@ class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">体重</div>
             ) : (
               <button
                 disabled
-                class="w-full bg-gray-300 text-gray-500 font-bold py-4 px-6 rounded-xl shadow-lg flex items-center justify-center space-x-2 text-lg cursor-not-allowed"
+                class="w-full bg-gray-300 text-gray-500 font-bold py-3 md:py-4 px-6 rounded-xl shadow-lg flex items-center justify-center space-x-2 text-base md:text-lg cursor-not-allowed"
               >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                 </svg>
                 <span>お問い合わせ先が未設定です</span>
@@ -341,16 +341,16 @@ class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">体重</div>
       </div>
 
       {dog.description && (
-        <div class="bg-white rounded-2xl shadow-xl p-6 md:p-10 mb-8 border-2 border-orange-100">
+        <div class="bg-white rounded-2xl shadow-xl p-5 md:p-10 mb-8 border-2 border-orange-100">
       
-    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-            <svg class="w-7 h-7 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-6 flex items-center">
+            <svg class="w-6 h-6 md:w-7 md:h-7 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
             </svg>
             この子の紹介
         
   </h2>
-          <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed" set:html={dog.description} />
+          <div class="prose md:prose-lg max-w-none text-gray-700 leading-relaxed" set:html={dog.description} />
         </div>
       )}
 

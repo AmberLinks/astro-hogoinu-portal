@@ -2,164 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
-/* カスタムフォント設定 */
+/* (中略: カスタムフォント、スクロールバー...) */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W3", Meiryo, メイリオ, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* ▼ 追加: スマホでの基本文字サイズを 15px に設定 (読みやすさのため) */
+  font-size: 15px;
 }
+/* ▲ 追加 */
 
-/* スムーズスクロール */
-html {
-  scroll-behavior: smooth;
-}
+/* (中略: selectのスタイル...) */
 
-/* カスタムスクロールバー */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: #FFF8F0;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #FF8C42;
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #FF6B1A;
-}
-
-/* セレクトボックスのスタイル改善 */
-select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23FF8C42'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  background-size: 1.25rem;
-  padding-right: 2.5rem;
-}
+/* ▼▼▼ 変更点: prose (記事) のスタイルをスマホ対応 ▼▼▼ */
 
 /* プロセスタイル（詳細ページの紹介文用） */
 .prose {
   color: #374151;
   max-width: none;
+  /* ▼ 変更: スマホでの行の高さを調整 */
+  line-height: 1.7;
 }
 
+/* スマホ用の見出しサイズ */
 .prose h1 {
   color: #FF8C42;
   font-weight: 700;
-  font-size: 1.875rem;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+  font-size: 1.5rem; /* 24px */
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .prose h2 {
   color: #FF8C42;
   font-weight: 600;
-  font-size: 1.5rem;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
+  font-size: 1.25rem; /* 20px */
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .prose h3 {
   color: #4A90E2;
   font-weight: 600;
-  font-size: 1.25rem;
-  margin-top: 1.25rem;
+  font-size: 1.125rem; /* 18px */
+  margin-top: 1rem;
   margin-bottom: 0.5rem;
+}
+
+/* md (768px) 以上の画面で、元の大きいサイズに戻す */
+@media (min-width: 768px) {
+  .prose h1 {
+    font-size: 1.875rem; /* 30px */
+  }
+  .prose h2 {
+    font-size: 1.5rem; /* 24px */
+  }
+  .prose h3 {
+    font-size: 1.25rem; /* 20px */
+  }
 }
 
 .prose p {
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
-  line-height: 1.75;
 }
-
-.prose ul, .prose ol {
-  margin-top: 0.75rem;
-  margin-bottom: 0.75rem;
-  padding-left: 1.5rem;
-}
-
-.prose li {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
-}
-
-.prose strong {
-  color: #1F2937;
-  font-weight: 600;
-}
-
-.prose a {
-  color: #FF8C42;
-  text-decoration: underline;
-  transition: color 0.2s;
-}
-
-.prose a:hover {
-  color: #FF6B1A;
-}
-
-/* アニメーション */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.dog-card {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* フォーカススタイル */
-*:focus {
-  outline: none;
-}
-
-*:focus-visible {
-  outline: 2px solid #FF8C42;
-  outline-offset: 2px;
-}
-
-/* ホバーエフェクト */
-a, button {
-  transition: all 0.2s ease;
-}
-
-/* レスポンシブ画像 */
-img {
-  max-width: 100%;
-  height: auto;
-}
-
-/* タッチデバイス用の最適化 */
-@media (hover: none) {
-  .dog-card:hover {
-    transform: none;
-  }
-  
-  .dog-card:active {
-    transform: scale(0.98);
-  }
-}
-
-/* プリント用スタイル */
-@media print {
-  header, footer, .no-print {
-    display: none;
-  }
-  
-  body {
-    background: white;
-  }
-}
+/* (中略) */
+/* ▲▲▲ 変更点ここまで ▲▲▲ */
