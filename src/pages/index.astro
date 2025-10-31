@@ -1,10 +1,11 @@
 ---
 import { client } from '../lib/microcms';
-import type { Dog, MicroCMSListResponse } from '../types';
+// ▼ 変更: News と MicroCMSListResponse をインポート
+import type { Dog, News, MicroCMSListResponse } from '../types';
 import MainLayout from '../layouts/MainLayout.astro';
 
-// microCMSからデータを取得
-const response = await client.get<MicroCMSListResponse<Dog>>({
+// --- microCMSから犬データを取得 ---
+const dogResponse = await client.get<MicroCMSListResponse<Dog>>({
   endpoint: 'dogs', 
   queries: { 
     limit: 100, 
@@ -12,7 +13,24 @@ const response = await client.get<MicroCMSListResponse<Dog>>({
     depth: 1 
   }
 });
-const dogs = response.contents;
+const dogs = dogResponse.contents;
+
+// ▼ 追加: microCMSからお知らせデータを取得 (エンドポイント名 'news' を想定)
+// 最新3件を取得
+let allNews: News[] = [];
+try {
+  const newsResponse = await client.get<MicroCMSListResponse<News>>({
+    endpoint: 'news', // "お知らせ" のエンドポイント名
+    queries: {
+      limit: 3,
+      orders: '-publishedAt'
+    }
+  });
+  allNews = newsResponse.contents;
+} catch (e) {
+  console.error("お知らせの取得に失敗しました:", e);
+}
+// ▲ 追加終わり
 
 console.log('=== データ取得完了 ===');
 console.log('取得した犬の総数:', dogs.length);
@@ -21,20 +39,18 @@ console.log('取得した犬の総数:', dogs.length);
 const normalizeField = (field: string | string[] | undefined | null): string => {
   if (Array.isArray(field) && field.length > 0) {
     return field[0];
-  }
+}
   if (typeof field === 'string') {
     return field;
   }
   return '';
 };
-
 // --- 所属団体データの抽出と整形 ---
 const groupData = dogs
   .map(dog => dog.group?.group_name)
   .filter((name): name is string => {
     return typeof name === 'string' && name.trim() !== '';
   });
-
 const uniqueGroups = Array.from(new Set(groupData));
 const allGroupNames = uniqueGroups.sort((a, b) => {
   return a.localeCompare(b, 'ja-JP', { 
@@ -42,14 +58,12 @@ const allGroupNames = uniqueGroups.sort((a, b) => {
     numeric: true 
   });
 });
-
 // --- 犬種データの抽出と整形 ---
 const breedData = dogs
   .map(dog => normalizeField(dog.breed))
   .filter((name): name is string => {
     return typeof name === 'string' && name.trim() !== '';
   });
-
 const uniqueBreeds = Array.from(new Set(breedData));
 const allBreedNames = uniqueBreeds.sort((a, b) => {
   return a.localeCompare(b, 'ja-JP', { 
@@ -57,14 +71,12 @@ const allBreedNames = uniqueBreeds.sort((a, b) => {
     numeric: true 
   });
 });
-
 // --- 性別データの抽出と整形 ---
 const genderData = dogs
   .map(dog => normalizeField(dog.gender))
   .filter((name): name is string => {
     return typeof name === 'string' && name.trim() !== '';
   });
-
 const uniqueGenders = Array.from(new Set(genderData));
 const allGenderNames = uniqueGenders.sort((a, b) => {
   return a.localeCompare(b, 'ja-JP', { 
@@ -72,14 +84,12 @@ const allGenderNames = uniqueGenders.sort((a, b) => {
     numeric: true 
   });
 });
-
 // --- ステータスデータの抽出と整形 ---
 const statusData = dogs
   .map(dog => normalizeField(dog.status))
   .filter((name): name is string => {
     return typeof name === 'string' && name.trim() !== '';
   });
-
 const uniqueStatuses = Array.from(new Set(statusData));
 const allStatusNames = uniqueStatuses.sort((a, b) => {
   return a.localeCompare(b, 'ja-JP', { 
@@ -87,18 +97,16 @@ const allStatusNames = uniqueStatuses.sort((a, b) => {
     numeric: true 
   });
 });
-
 console.log('抽出された犬種一覧:', allBreedNames);
 console.log('抽出された性別一覧:', allGenderNames);
 console.log('抽出されたステータス一覧:', allStatusNames);
 console.log('抽出された団体一覧:', allGroupNames);
 
-const placeholderIcon = "/dog-placeholder.svg"; 
+const placeholderIcon = "/dog-placeholder.svg";
 ---
 
 <MainLayout title="保護犬を探す">
   
-  <!-- ヒーローセクション -->
   <section class="text-center mb-12">
     <h1 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600 mb-4">
       あなたの家族になる子を探そう
@@ -108,11 +116,53 @@ const placeholderIcon = "/dog-placeholder.svg";
     </p>
   </section>
 
-  <!-- 検索フォーム -->
+  {allNews.length > 0 && (
+    <section class="mb-10">
+      <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 border-2 border-blue-100">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+          <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          お知らせ
+        </h2>
+        <ul class="space-y-3">
+          {allNews.map(newsItem => (
+            <li class="border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
+              {/* お知らせ詳細ページ (例: src/pages/news/[id].astro) を
+                作成する場合は、以下の a タグを有効にしてください。
+              */}
+              {/* <a href={`/news/${newsItem.id}/`} class="group block"> */}
+                <p class="text-sm text-gray-500 mb-1">
+                  {new Date(newsItem.publishedAt).toLocaleDateString('ja-JP')}
+                </p>
+                <h3 class="font-semibold text-gray-700 group-hover:text-orange-600 transition-colors">
+                  {newsItem.title}
+                </h3>
+              {/* </a> */}
+
+              {/* 詳細ページを作らず、リッチエディタの内容をここに表示する場合
+                (HTMLがエスケープされないため set:html には注意してください)
+                <div class="prose prose-sm mt-1" set:html={newsItem.content} />
+              */}
+            </li>
+          ))}
+        </ul>
+        {/* お知らせ一覧ページ (例: src/pages/news/index.astro) を
+          作成する場合は、以下のリンクを有効にしてください。
+          <div class="text-right mt-4">
+            <a href="/news/" class="text-sm font-medium text-orange-600 hover:text-orange-700">
+              お知らせ一覧を見る &rarr;
+            </a>
+          </div> 
+        */}
+      </div>
+    </section>
+  )}
   <section class="mb-10">
     <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 border-2 border-orange-100">
       <div class="flex items-center mb-6">
-        <svg class="w-6 h-6 text-orange-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-6 h-6 text-orange-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 
+24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
         </svg>
         <h2 class="text-2xl font-bold text-gray-800">条件で探す</h2>
@@ -120,15 +170,16 @@ const placeholderIcon = "/dog-placeholder.svg";
 
       <form id="search-form" class="space-y-6">
         
-        <!-- フリーワード検索 -->
         <div class="bg-gradient-to-r from-orange-50 to-amber-50 p-4 rounded-xl border border-orange-200">
-          <label for="search-keyword" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
+          
+<label for="search-keyword" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
             <svg class="w-4 h-4 mr-1 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
             </svg>
             フリーワード
           </label>
-          <input 
+          
+<input 
             type="text" 
             id="search-keyword" 
             placeholder="名前、年齢、体重、特徴などで検索..."
@@ -136,114 +187,120 @@ const placeholderIcon = "/dog-placeholder.svg";
           />
         </div>
 
-        <!-- 詳細条件 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid 
+grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
-          <!-- 所属団体 -->
           <div>
             <label for="search-group" class="block text-sm font-semibold text-gray-700 mb-2">
               📍 所属団体
             </label>
             <select 
-              id="search-group" 
+       
+       id="search-group" 
               name="group" 
               class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none transition-all bg-white cursor-pointer"
             >
               <option value="">すべての団体</option>
               {allGroupNames.map(name => (
-                <option value={name}>{name}</option>
+        
+        <option value={name}>{name}</option>
               ))}
             </select>
             <p class="text-xs text-gray-500 mt-1.5">全{allGroupNames.length}団体</p>
           </div>
 
-          <!-- 犬種 -->
           <div>
-            <label for="search-breed" class="block text-sm font-semibold text-gray-700 mb-2">
+            <label for="search-breed" class="block text-sm font-semibold text-gray-700 
+mb-2">
               🐕 犬種
             </label>
             <select 
               id="search-breed" 
               name="breed" 
               class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none transition-all bg-white cursor-pointer"
-            >
+    
+        >
               <option value="">すべての犬種</option>
               {allBreedNames.map(name => (
                 <option value={name}>{name}</option>
               ))}
             </select>
             <p class="text-xs text-gray-500 mt-1.5">全{allBreedNames.length}種類</p>
-          </div>
+   
+       </div>
 
-          <!-- 性別 -->
           <div>
             <label for="search-gender" class="block text-sm font-semibold text-gray-700 mb-2">
               ⚥ 性別
             </label>
             <select 
-              id="search-gender" 
+             
+ id="search-gender" 
               name="gender" 
               class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none transition-all bg-white cursor-pointer"
             >
               <option value="">すべて</option>
               {allGenderNames.map(name => (
-                <option value={name}>{name}</option>
+              
+  <option value={name}>{name}</option>
               ))}
             </select>
             <p class="text-xs text-gray-500 mt-1.5">&nbsp;</p>
           </div>
 
-          <!-- ステータス -->
           <div>
             <label for="search-status" class="block text-sm font-semibold text-gray-700 mb-2">
-              ✨ ステータス
+      
+        ✨ ステータス
             </label>
             <select 
               id="search-status" 
               name="status" 
               class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none transition-all bg-white cursor-pointer"
-            >
+          
+  >
               <option value="">すべて</option>
               {allStatusNames.map(name => (
                 <option value={name}>{name}</option>
               ))}
             </select>
             <p class="text-xs text-gray-500 mt-1.5">&nbsp;</p>
-          </div>
+         
+ </div>
           
         </div>
 
-        <!-- リセットボタン -->
         <div class="flex justify-end">
           <button 
             type="button" 
             id="reset-button"
             class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors flex items-center space-x-2"
-          >
+   
+       >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
             </svg>
             <span>条件をリセット</span>
           </button>
-        </div>
+        
+</div>
 
       </form>
     </div>
   </section>
 
-  <!-- 検索結果カウント -->
   <div class="mb-6 flex items-center justify-between">
     <div id="result-count" class="text-lg font-semibold text-gray-700 flex items-center space-x-2">
       <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
       </svg>
-      <span>
+   
+   <span>
         表示中 <span id="visible-count" class="text-orange-600 font-bold">{dogs.length}</span> 件 
         <span class="text-gray-400">/ 全 {dogs.length} 件</span>
       </span>
     </div>
     
-    <!-- 並び替え（将来の拡張用） -->
     <div class="hidden md:block">
       <select class="px-4 py-2 rounded-lg border-2 border-gray-200 text-sm focus:border-orange-400 outline-none cursor-pointer">
         <option>新着順</option>
@@ -252,12 +309,12 @@ const placeholderIcon = "/dog-placeholder.svg";
     </div>
   </div>
 
-  <!-- 犬一覧 -->
-  <div id="dog-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  
+<div id="dog-list-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
     
     {dogs.map(dog => {
       const breedValue = normalizeField(dog.breed);
-      const genderValue = normalizeField(dog.gender);
+const genderValue = normalizeField(dog.gender);
       const statusValue = normalizeField(dog.status);
       
       return (
@@ -268,86 +325,92 @@ const placeholderIcon = "/dog-placeholder.svg";
           data-breed={breedValue}
           data-gender={genderValue}
           data-status={statusValue}
-          data-group_name={dog.group?.group_name || ''}
+        
+  data-group_name={dog.group?.group_name || ''}
           
           data-name={dog.name || ''}
           data-age={dog.age || ''}
           data-bw={dog.bw || ''}
           data-description={(dog.description || '').replace(/<[^>]+>/g, '')}
         >
-          <!-- 画像エリア -->
           <div class="relative overflow-hidden aspect-square">
-            <img 
+    
+        <img 
               src={dog.image_url || placeholderIcon} 
               alt={dog.name}
               class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             />
             
-            <!-- ステータスバッジ -->
-            {statusValue && (
+                     {statusValue && (
               <div class="absolute top-3 right-3">
                 <span class="inline-block bg-gradient-to-r from-green-400 to-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
                   {statusValue}
                 </span>
-              </div>
+           
+   </div>
             )}
             
-            <!-- グラデーションオーバーレイ -->
             <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/30 to-transparent"></div>
           </div>
           
-          <!-- 情報エリア -->
-          <div class="p-5">
+             <div class="p-5">
             <h2 class="text-xl font-bold text-gray-800 mb-3 group-hover:text-orange-600 transition-colors flex items-center">
               {dog.name}
               <svg class="w-5 h-5 ml-2 text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
+            
+  </svg>
             </h2>
             
             <div class="space-y-2 text-sm text-gray-600">
               <div class="flex items-start">
                 <span class="text-gray-400 w-16 flex-shrink-0">犬種</span>
-                <span class="font-medium text-gray-700">{breedValue || 'MIX / 不明'}</span>
+                <span class="font-medium text-gray-700">{breedValue ||
+'MIX / 不明'}</span>
               </div>
               
               <div class="flex items-start">
                 <span class="text-gray-400 w-16 flex-shrink-0">年齢</span>
-                <span class="font-medium text-gray-700">{dog.age || '不明'}</span>
+                <span class="font-medium text-gray-700">{dog.age ||
+'不明'}</span>
               </div>
               
               {dog.bw && (
                 <div class="flex items-start">
                   <span class="text-gray-400 w-16 flex-shrink-0">体重</span>
-                  <span class="font-medium text-gray-700">{dog.bw}</span>
+                 
+ <span class="font-medium text-gray-700">{dog.bw}</span>
                 </div>
               )}
               
               <div class="flex items-start">
                 <span class="text-gray-400 w-16 flex-shrink-0">性別</span>
-                <span class="font-medium text-gray-700">{genderValue || '未設定'}</span>
+                <span class="font-medium 
+text-gray-700">{genderValue || '未設定'}</span>
               </div>
               
               {dog.group && (
                 <div class="pt-2 mt-2 border-t border-gray-100">
                   <p class="text-xs text-gray-500 flex items-center">
-                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            
+        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
+           
+         </svg>
                     {dog.group.group_name}
                   </p>
                 </div>
               )}
             </div>
           </div>
-        </a>
+ 
+       </a>
       );
-    })}
+})}
     
   </div>
 
-  <!-- 結果なしメッセージ -->
   <div id="no-results" class="hidden text-center py-16">
     <div class="inline-block p-8 bg-white rounded-2xl shadow-lg">
       <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -355,7 +418,8 @@ const placeholderIcon = "/dog-placeholder.svg";
       </svg>
       <h3 class="text-xl font-bold text-gray-700 mb-2">該当する犬が見つかりませんでした</h3>
       <p class="text-gray-500 mb-4">別の条件で検索してみてください</p>
-      <button 
+     
+ <button 
         id="reset-button-2"
         class="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors"
       >
@@ -368,14 +432,15 @@ const placeholderIcon = "/dog-placeholder.svg";
 
 <script>
   function filterDogs() {
-    const keywordValue = (document.getElementById('search-keyword') as HTMLInputElement)?.value.toLowerCase() || '';
+    const keywordValue = (document.getElementById('search-keyword') as HTMLInputElement)?.value.toLowerCase() ||
+'';
     const breedValue = (document.getElementById('search-breed') as HTMLSelectElement)?.value || '';
     const genderValue = (document.getElementById('search-gender') as HTMLSelectElement)?.value || '';
-    const statusValue = (document.getElementById('search-status') as HTMLSelectElement)?.value || '';
+const statusValue = (document.getElementById('search-status') as HTMLSelectElement)?.value || '';
     const groupValue = (document.getElementById('search-group') as HTMLSelectElement)?.value || '';
 
     const cards = document.querySelectorAll('.dog-card');
-    let visibleCount = 0;
+let visibleCount = 0;
 
     cards.forEach(card => {
       const dogCard = card as HTMLElement;
@@ -387,7 +452,8 @@ const placeholderIcon = "/dog-placeholder.svg";
       
       const cardName = (dogCard.dataset.name || '').toLowerCase();
       const cardAge = (dogCard.dataset.age || '').toLowerCase();
-      const cardBw = (dogCard.dataset.bw || '').toLowerCase();
+      const cardBw = (dogCard.dataset.bw 
+|| '').toLowerCase();
       const cardDescription = (dogCard.dataset.description || '').toLowerCase();
 
       const isBreedMatch = (breedValue === "") || (cardBreed === breedValue);
@@ -396,49 +462,48 @@ const placeholderIcon = "/dog-placeholder.svg";
       const isGroupMatch = (groupValue === "") || (cardGroupName === groupValue);
 
       const isKeywordMatch = (keywordValue === "") || 
-                             (cardName.includes(keywordValue)) ||
+               
+              (cardName.includes(keywordValue)) ||
                              (cardAge.includes(keywordValue)) ||
                              (cardBw.includes(keywordValue)) ||
-                             (cardDescription.includes(keywordValue));
+(cardDescription.includes(keywordValue));
 
       if (isBreedMatch && isGenderMatch && isStatusMatch && isGroupMatch && isKeywordMatch) {
         dogCard.style.display = 'block';
-        visibleCount++;
+visibleCount++;
       } else {
         dogCard.style.display = 'none';
       }
     });
-
-    const visibleCountElement = document.getElementById('visible-count');
+const visibleCountElement = document.getElementById('visible-count');
     if (visibleCountElement) {
       visibleCountElement.textContent = visibleCount.toString();
-    }
+}
 
     // 結果なしメッセージの表示/非表示
     const noResults = document.getElementById('no-results');
     const dogListContainer = document.getElementById('dog-list-container');
-    if (noResults && dogListContainer) {
+if (noResults && dogListContainer) {
       if (visibleCount === 0) {
         noResults.classList.remove('hidden');
-        dogListContainer.classList.add('hidden');
+dogListContainer.classList.add('hidden');
       } else {
         noResults.classList.add('hidden');
         dogListContainer.classList.remove('hidden');
-      }
+}
     }
 
     console.log(`表示件数: ${visibleCount} / ${cards.length}`);
-  }
+}
 
   function resetFilters() {
     // すべての入力をリセット
     (document.getElementById('search-keyword') as HTMLInputElement).value = '';
-    (document.getElementById('search-breed') as HTMLSelectElement).value = '';
+(document.getElementById('search-breed') as HTMLSelectElement).value = '';
     (document.getElementById('search-gender') as HTMLSelectElement).value = '';
     (document.getElementById('search-status') as HTMLSelectElement).value = '';
     (document.getElementById('search-group') as HTMLSelectElement).value = '';
-    
-    // フィルタを再実行
+// フィルタを再実行
     filterDogs();
   }
 

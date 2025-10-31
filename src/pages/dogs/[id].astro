@@ -11,8 +11,7 @@ export async function getStaticPaths() {
       fields: 'id'
     }
   });
-
-  return response.map((dog) => ({
+return response.map((dog) => ({
     params: { id: dog.id },
   }));
 }
@@ -24,7 +23,7 @@ try {
   dog = await client.get<Dog>({
     endpoint: 'dogs',
     contentId: id,
-    queries: { depth: 2 }
+    queries: { depth: 2 } // 団体(group)の情報を取得するため depth: 2
   });
 } catch (e) {
   console.error(e);
@@ -36,31 +35,66 @@ const placeholderIcon = "/dog-placeholder.svg";
 const normalizeField = (field: string | string[] | undefined | null): string => {
   if (Array.isArray(field) && field.length > 0) {
     return field[0];
-  }
+}
   if (typeof field === 'string') {
     return field;
   }
   return '';
 };
+
+// mailtoリンク用の変数（件名と本文の定型文）をここで生成します
+let mailtoHref = '';
+if (dog && dog.group && dog.group.email) {
+  const groupName = dog.group.group_name || '団体';
+  const dogName = dog.name || '保護犬';
+  const email = dog.group.email;
+
+  // 1. 件名
+  const subject = `${groupName}様 ${dogName}ちゃんについてのお問い合わせ`;
+
+  // 2. 本文（定型文）
+  // \n はメール本文の改行です
+  const body = `
+${groupName} 様
+
+静岡保護犬ポータルサイトを見て、${dogName}ちゃんの件でお問い合わせいたしました。
+
+[以下に内容をご記入ください]
+
+
+--------------------
+・お名前:
+・ご連絡先 (電話番号):
+・ご住所 (市町村まで):
+・お問い合わせ内容 (例: 譲渡条件について、面会希望など):
+--------------------
+`;
+
+  // 3. mailtoリンクを生成 (件名と本文をURLエンコード)
+  // encodeURIComponent を使って日本語が文字化けしないようにします
+  mailtoHref = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
 ---
 
 <MainLayout title={dog ? dog.name : '詳細'}>
   
-  {dog ? (
+  {dog ?
+(
     <div class="max-w-6xl mx-auto">
       
-      <!-- パンくずリスト -->
       <nav class="mb-6 text-sm">
         <ol class="flex items-center space-x-2 text-gray-500">
           <li>
             <a href="/" class="hover:text-orange-600 transition-colors flex items-center">
               <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+          
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
               </svg>
               トップ
             </a>
           </li>
-          <li>
+          
+<li>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
             </svg>
@@ -69,43 +103,48 @@ const normalizeField = (field: string | string[] | undefined | null): string => 
         </ol>
       </nav>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 
+mb-8">
         
-        <!-- 左カラム: 画像 -->
         <div class="space-y-4">
           <div class="bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-orange-100">
             <div class="relative aspect-square">
               <img 
-                src={dog.image_url || placeholderIcon} 
+                src={dog.image_url ||
+placeholderIcon} 
                 alt={dog.name} 
                 class="w-full h-full object-cover" 
               />
               
               {normalizeField(dog.status) && (
-                <div class="absolute top-4 right-4">
+                <div class="absolute top-4 
+right-4">
                   <span class="inline-block bg-gradient-to-r from-green-400 to-green-600 text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg">
                     {normalizeField(dog.status)}
                   </span>
                 </div>
               )}
-            </div>
+   
+         </div>
           </div>
           
-          <!-- 共有ボタン（将来の拡張用） -->
           <div class="bg-white rounded-xl shadow-md p-4 border border-orange-100">
             <p class="text-sm text-gray-600 mb-3 font-medium flex items-center">
               <svg class="w-4 h-4 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+ 
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
               </svg>
               この子を共有する
             </p>
-            <div class="flex space-x-2">
+           
+ <div class="flex space-x-2">
               <button class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium transition-colors text-sm">
                 Twitter
               </button>
               <button class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium transition-colors text-sm">
                 LINE
-              </button>
+     
+         </button>
               <button class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 rounded-lg font-medium transition-colors text-sm">
                 リンク
               </button>
@@ -113,164 +152,220 @@ const normalizeField = (field: string | string[] | undefined | null): string => 
           </div>
         </div>
 
-        <!-- 右カラム: 基本情報 -->
-        <div class="space-y-6">
+        
+<div class="space-y-6">
           
-          <!-- 名前とステータス -->
           <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 border-2 border-orange-100">
             <h1 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600 mb-2">
               {dog.name}
             </h1>
-            <p class="text-gray-500 text-sm">ID: {dog.id}</p>
+  
+          <p class="text-gray-500 text-sm">ID: {dog.id}</p>
           </div>
 
-          <!-- 基本情報カード -->
           <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 border-2 border-orange-100">
             <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
               <svg class="w-6 h-6 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               基本情報
             </h2>
             
             <div class="space-y-4">
-              
+          
+    
               <div class="flex items-start border-b border-gray-100 pb-4">
                 <div class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">犬種</div>
                 <div class="flex-1 font-semibold text-gray-800 text-lg">
-                  {normalizeField(dog.breed) || 'MIX / 不明'}
+                  {normalizeField(dog.breed) ||
+'MIX / 不明'}
                 </div>
               </div>
               
               <div class="flex items-start border-b border-gray-100 pb-4">
                 <div class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">性別</div>
-                <div class="flex-1 font-semibold text-gray-800 text-lg">
-                  {normalizeField(dog.gender) || '未設定'}
+              
+  <div class="flex-1 font-semibold text-gray-800 text-lg">
+                  {normalizeField(dog.gender) ||
+'未設定'}
                 </div>
               </div>
               
               <div class="flex items-start border-b border-gray-100 pb-4">
                 <div class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">年齢</div>
-                <div class="flex-1 font-semibold text-gray-800 text-lg">
-                  {dog.age || '不明'}
+                
+<div class="flex-1 font-semibold text-gray-800 text-lg">
+                  {dog.age ||
+'不明'}
                 </div>
               </div>
               
               {dog.bw && (
                 <div class="flex items-start border-b border-gray-100 pb-4">
-                  <div class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">体重</div>
+                  <div 
+class="w-24 flex-shrink-0 text-gray-500 font-medium text-sm">体重</div>
                   <div class="flex-1 font-semibold text-gray-800 text-lg">
                     {dog.bw}
                   </div>
                 </div>
               )}
-              
+      
+        
             </div>
           </div>
 
-          <!-- 所属団体情報 -->
           {dog.group && (
             <div class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl shadow-lg p-6 border-2 border-orange-200">
               <h2 class="text-lg font-bold text-gray-800 mb-3 flex items-center">
-                <svg class="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      
+          <svg class="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
+                
+</svg>
                 所属団体
               </h2>
-              <p class="text-gray-800 font-semibold text-lg mb-2">{dog.group.group_name}</p>
-              {dog.group.source_url && (
-                <a 
-                  href={dog.group.source_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  class="inline-flex items-center text-orange-600 hover:text-orange-700 font-medium transition-colors text-sm"
-                >
-                  団体サイトを見る
-                  <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                  </svg>
-                </a>
-              )}
+              <p class="text-gray-800 font-semibold text-lg mb-4">{dog.group.group_name}</p>
+
+              <div class="flex flex-col sm:flex-row gap-3">
+                {dog.group.source_url && (
+                  <a 
+                    href={dog.group.source_url} 
+
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-white hover:bg-orange-50 border border-orange-300 text-orange-600 rounded-lg font-medium transition-colors text-sm"
+                  >
+                    団体サイトを見る
+    
+              <svg class="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                  </a>
+    
+          )}
+
+                {dog.sns_url && (
+                  <a 
+                    href={dog.sns_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-white hover:bg-blue-50 border border-blue-300 text-blue-600 rounded-lg font-medium transition-colors text-sm"
+                  >
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.102 1.101" />
+                    </svg>
+                    担当者SNSを見る
+                  </a>
+                )}
+              </div>
             </div>
           )}
 
-          <!-- お問い合わせボタン -->
-          <div class="bg-white rounded-2xl shadow-xl p-6 border-2 border-orange-100">
-            <button class="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-lg">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 md:p-8 border-2 border-blue-200">
+            <h3 class="font-bold text-lg text-blue-800 mb-3 flex items-center">
+              <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
               </svg>
-              <span>この子について問い合わせる</span>
-            </button>
-            <p class="text-xs text-gray-500 mt-3 text-center">
-              所属団体へのお問い合わせページに移動します
+              お問い合わせ前にご確認ください
+            </h3>
+            <ul class="space-y-2 text-sm text-gray-700">
+              <li class="flex items-start">
+                <svg class="w-4 h-4 mr-2 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                譲渡には各団体の審査があります
+              </li>
+              <li class="flex items-start">
+                <svg class="w-4 h-4 mr-2 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+           
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                譲渡費用（医療費等）が必要な場合があります
+              </li>
+              
+              <li class="flex items-start">
+                <svg class="w-4 h-4 mr-2 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                ステータスが「募集中」以外の場合は譲渡できません
+              </li>
+              <li class="flex items-start">
+                <svg class="w-4 h-4 mr-2 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+         
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                最新情報は所属団体へ直接お問い合わせください
+              </li>
+            </ul>
+          </div>
+
+
+          <div class="bg-white rounded-2xl shadow-xl p-6 border-2 border-orange-100">
+            
+            {mailtoHref ? (
+              <a
+                href={mailtoHref}
+                class="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg flex items-center justify-center space-x-2 text-lg"
+              >
+        
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+                <span>この子について問い合わせる</span>
+              </a>
+            ) : (
+              <button
+                disabled
+                class="w-full bg-gray-300 text-gray-500 font-bold py-4 px-6 rounded-xl shadow-lg flex items-center justify-center space-x-2 text-lg cursor-not-allowed"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+                <span>お問い合わせ先が未設定です</span>
+              </button>
+            )}
+    
+        <p class="text-xs text-gray-500 mt-3 text-center">
+              {mailtoHref
+                ? "所属団体へメールで問い合わせます"
+                : "団体の連絡先メールアドレスが未登録です"}
             </p>
           </div>
 
         </div>
       </div>
 
-      <!-- 紹介文セクション -->
       {dog.description && (
         <div class="bg-white rounded-2xl shadow-xl p-6 md:p-10 mb-8 border-2 border-orange-100">
-          <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+      
+    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
             <svg class="w-7 h-7 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
             </svg>
             この子の紹介
-          </h2>
+        
+  </h2>
           <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed" set:html={dog.description} />
         </div>
       )}
 
-      <!-- 注意事項 -->
-      <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 md:p-8 border-2 border-blue-200">
-        <h3 class="font-bold text-lg text-blue-800 mb-3 flex items-center">
-          <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-          </svg>
-          お問い合わせ前にご確認ください
-        </h3>
-        <ul class="space-y-2 text-sm text-gray-700">
-          <li class="flex items-start">
-            <svg class="w-4 h-4 mr-2 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            譲渡には各団体の審査があります
-          </li>
-          <li class="flex items-start">
-            <svg class="w-4 h-4 mr-2 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            譲渡費用（医療費等）が必要な場合があります
-          </li>
-          <li class="flex items-start">
-            <svg class="w-4 h-4 mr-2 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            ステータスが「譲渡済み」の場合は譲渡できません
-          </li>
-          <li class="flex items-start">
-            <svg class="w-4 h-4 mr-2 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            最新情報は所属団体へ直接お問い合わせください
-          </li>
-        </ul>
-      </div>
-
-      <!-- 戻るボタン -->
       <div class="mt-8 text-center">
         <a 
-          href="/" 
+ 
+         href="/" 
           class="inline-flex items-center px-8 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors"
         >
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
           </svg>
           一覧に戻る
-        </a>
+     
+   </a>
       </div>
       
     </div>
@@ -280,14 +375,16 @@ const normalizeField = (field: string | string[] | undefined | null): string => 
         <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
-        <h2 class="text-2xl font-bold text-gray-700 mb-2">犬の情報が見つかりませんでした</h2>
+  
+      <h2 class="text-2xl font-bold text-gray-700 mb-2">犬の情報が見つかりませんでした</h2>
         <p class="text-gray-500 mb-6">指定されたIDの犬は存在しないか、削除された可能性があります。</p>
         <a 
           href="/" 
           class="inline-flex items-center px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-colors"
         >
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            <path stroke-linecap="round" 
+stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
           </svg>
           トップページへ
         </a>
