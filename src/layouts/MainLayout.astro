@@ -12,18 +12,19 @@ const { title } = Astro.props;
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="generator" content={Astro.generator} />
-  <title>{title} | 静岡保護犬ポータル</title>
+  <title>{title} |
+静岡保護犬ポータル</title>
   <meta name="description" content="静岡県の保護犬情報を掲載。新しい家族との出会いをサポートします。" />
 </head>
 <body class="bg-gradient-to-b from-orange-50 to-amber-50 text-gray-800 min-h-screen">
   
-  <!-- ヘッダー -->
   <header class="bg-white shadow-sm sticky top-0 z-50 border-b-2 border-orange-200">
     <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
       <a href="/" class="flex items-center space-x-3 group">
         <div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
           <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+            <path stroke-linecap="round" 
+stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
           </svg>
         </div>
         <div>
@@ -31,58 +32,60 @@ const { title } = Astro.props;
             静岡保護犬ポータル
           </h1>
           <p class="text-xs text-gray-500 hidden md:block">新しい家族との出会いを</p>
-        </div>
+    
+    </div>
       </a>
       
-      <!-- ナビゲーションメニュー（将来の拡張用） -->
       <div class="hidden md:flex items-center space-x-6">
         <a href="/" class="text-gray-700 hover:text-orange-600 transition-colors font-medium">犬を探す</a>
-        <a href="#about" class="text-gray-700 hover:text-orange-600 transition-colors font-medium">ポータルについて</a>
-        <a href="#contact" class="text-gray-700 hover:text-orange-600 transition-colors font-medium">お問い合わせ</a>
+        <a href="/articles/" class="text-gray-700 hover:text-orange-600 transition-colors font-medium">記事一覧</a>
+        <a href="/about/" class="text-gray-700 hover:text-orange-600 transition-colors font-medium">ポータルについて</a>
+        <a href="/contact/" class="text-gray-700 hover:text-orange-600 transition-colors font-medium">お問い合わせ</a>
       </div>
-    </nav>
+      </nav>
   </header>
   
-  <!-- メインコンテンツ -->
   <main class="container mx-auto px-4 py-6 md:py-10">
-    <slot />
+  
+  <slot />
   </main>
   
-  <!-- フッター -->
   <footer class="bg-gradient-to-r from-orange-100 to-amber-100 mt-16 border-t-2 border-orange-200">
     <div class="container mx-auto px-4 py-8">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
         
-        <!-- フッター左 -->
         <div>
           <h3 class="font-bold text-lg text-orange-800 mb-3">静岡保護犬ポータル</h3>
           <p class="text-sm text-gray-600 leading-relaxed">
-            静岡県内の保護犬情報を集約し、新しい家族との出会いをサポートするポータルサイトです。
+         
+   静岡県内の保護犬情報を集約し、新しい家族との出会いをサポートするポータルサイトです。
           </p>
         </div>
         
-        <!-- フッター中央 -->
         <div>
           <h3 class="font-bold text-lg text-orange-800 mb-3">リンク</h3>
           <ul class="space-y-2 text-sm">
             <li><a href="/" class="text-gray-600 hover:text-orange-600 transition-colors">トップページ</a></li>
-            <li><a href="#about" class="text-gray-600 hover:text-orange-600 transition-colors">ポータルについて</a></li>
-            <li><a href="#contact" class="text-gray-600 hover:text-orange-600 transition-colors">お問い合わせ</a></li>
+            <li><a href="/articles/" class="text-gray-600 hover:text-orange-600 transition-colors">記事一覧</a></li>
+           
+ <li><a href="/about/" class="text-gray-600 hover:text-orange-600 transition-colors">ポータルについて</a></li>
+            <li><a href="/contact/" class="text-gray-600 hover:text-orange-600 transition-colors">お問い合わせ</a></li>
           </ul>
-        </div>
+          </div>
         
-        <!-- フッター右 -->
         <div>
           <h3 class="font-bold text-lg text-orange-800 mb-3">注意事項</h3>
           <p class="text-xs text-gray-600 leading-relaxed">
-            掲載されている保護犬の情報は各保護団体が管理しています。詳細は各団体へ直接お問い合わせください。
+        
+    掲載されている保護犬の情報は各保護団体が管理しています。詳細は各団体へ直接お問い合わせください。
           </p>
         </div>
         
       </div>
       
       <div class="text-center pt-6 border-t border-orange-200">
-        <p class="text-sm text-gray-600">© 2025 静岡保護犬ポータル. All rights reserved.</p>
+        <p class="text-sm text-gray-600">© 2025 静岡保護犬ポータル.
+All rights reserved.</p>
       </div>
     </div>
   </footer>

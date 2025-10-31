@@ -7,7 +7,7 @@ export interface Group {
   revisedAt: string;
   group_name: string;
   source_url: string;
-  email: string; // ▼ 追加: 連絡先メールアドレス
+  email: string; // 連絡先メールアドレス
 }
 
 // 犬の型 (microCMSのAPIスキーマに合わせてください)
@@ -25,10 +25,11 @@ export interface Dog {
   image_url: string; // 画像（または画像URL）
   description: string; // リッチエディタ
   breed: string; // セレクトフィールド
-  sns_url?: string; // ▼ 追加: SNSリンク (任意)
+  sns_url?: string; // SNSリンク (任意)
 }
 
 // ▼ 追加: お知らせの型 (エンドポイント名 'news' を想定)
+// ※「記事」とは別です
 export interface News {
   id: string;
   createdAt: string;
@@ -36,7 +37,23 @@ export interface News {
   publishedAt: string;
   revisedAt: string;
   title: string;
-  content: string; // ※リッチエディタやテキストフィールドなど、実際の型に合わせてください
+  content?: string; // 本文（リッチエディタまたはテキスト）
+}
+
+// ▼ 追加: 記事の型 (エンドポイント名 'articles' を想定)
+export interface Article {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+  revisedAt: string;
+  title: string;
+  content: string; // リッチエディタ
+  eyecatch?: { // 画像フィールド
+    url: string;
+    height: number;
+    width: number;
+  };
 }
 
 // microCMSのリスト形式APIの共通レスポンス型

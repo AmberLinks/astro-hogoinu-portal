@@ -1,7 +1,7 @@
 ---
 import { client } from '../lib/microcms';
-// ▼ 変更: News と MicroCMSListResponse をインポート
-import type { Dog, News, MicroCMSListResponse } from '../types';
+// ▼ 変更: News と Article を両方インポート
+import type { Dog, News, Article, MicroCMSListResponse } from '../types';
 import MainLayout from '../layouts/MainLayout.astro';
 
 // --- microCMSから犬データを取得 ---
@@ -15,14 +15,13 @@ const dogResponse = await client.get<MicroCMSListResponse<Dog>>({
 });
 const dogs = dogResponse.contents;
 
-// ▼ 追加: microCMSからお知らせデータを取得 (エンドポイント名 'news' を想定)
-// 最新3件を取得
+// ▼ 追加: microCMSから「お知らせ(news)」データを取得
 let allNews: News[] = [];
 try {
   const newsResponse = await client.get<MicroCMSListResponse<News>>({
     endpoint: 'news', // "お知らせ" のエンドポイント名
     queries: {
-      limit: 3,
+      limit: 3, // 最新3件
       orders: '-publishedAt'
     }
   });
@@ -30,11 +29,27 @@ try {
 } catch (e) {
   console.error("お知らせの取得に失敗しました:", e);
 }
+
+// ▼ 追加: microCMSから「新着記事(articles)」データを取得
+let allArticles: Article[] = [];
+try {
+  const articleResponse = await client.get<MicroCMSListResponse<Article>>({
+    endpoint: 'articles', // "記事" のエンドポイント名
+    queries: {
+      limit: 3, // 最新3件
+      orders: '-publishedAt'
+    }
+  });
+  allArticles = articleResponse.contents;
+} catch (e) {
+  console.error("記事の取得に失敗しました:", e);
+}
 // ▲ 追加終わり
 
 console.log('=== データ取得完了 ===');
 console.log('取得した犬の総数:', dogs.length);
 
+// ▼▼▼ エラー修正: 削除されていた normalizeField 関数を再定義 ▼▼▼
 // データ正規化関数: 配列または文字列を文字列に変換
 const normalizeField = (field: string | string[] | undefined | null): string => {
   if (Array.isArray(field) && field.length > 0) {
@@ -45,6 +60,8 @@ const normalizeField = (field: string | string[] | undefined | null): string => 
   }
   return '';
 };
+// ▲▲▲ エラー修正ここまで ▲▲▲
+
 // --- 所属団体データの抽出と整形 ---
 const groupData = dogs
   .map(dog => dog.group?.group_name)
@@ -60,7 +77,7 @@ const allGroupNames = uniqueGroups.sort((a, b) => {
 });
 // --- 犬種データの抽出と整形 ---
 const breedData = dogs
-  .map(dog => normalizeField(dog.breed))
+  .map(dog => normalizeField(dog.breed)) // ← この行でエラーが発生していました
   .filter((name): name is string => {
     return typeof name === 'string' && name.trim() !== '';
   });
@@ -118,9 +135,9 @@ const placeholderIcon = "/dog-placeholder.svg";
 
   {allNews.length > 0 && (
     <section class="mb-10">
-      <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 border-2 border-blue-100">
+      <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 border-2 border-gray-200">
         <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-          <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-6 h-6 text-orange-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
           お知らせ
@@ -128,36 +145,55 @@ const placeholderIcon = "/dog-placeholder.svg";
         <ul class="space-y-3">
           {allNews.map(newsItem => (
             <li class="border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
-              {/* お知らせ詳細ページ (例: src/pages/news/[id].astro) を
-                作成する場合は、以下の a タグを有効にしてください。
-              */}
-              {/* <a href={`/news/${newsItem.id}/`} class="group block"> */}
-                <p class="text-sm text-gray-500 mb-1">
-                  {new Date(newsItem.publishedAt).toLocaleDateString('ja-JP')}
-                </p>
-                <h3 class="font-semibold text-gray-700 group-hover:text-orange-600 transition-colors">
-                  {newsItem.title}
-                </h3>
-              {/* </a> */}
-
-              {/* 詳細ページを作らず、リッチエディタの内容をここに表示する場合
-                (HTMLがエスケープされないため set:html には注意してください)
-                <div class="prose prose-sm mt-1" set:html={newsItem.content} />
+              <p class="text-sm text-gray-500 mb-1">
+                {new Date(newsItem.publishedAt).toLocaleDateString('ja-JP')}
+              </p>
+              <h3 class="font-semibold text-gray-700">
+                {newsItem.title}
+              </h3>
+              {/* newsItem.content && (
+                  <div class="prose prose-sm mt-1" set:html={newsItem.content} />
+                )
               */}
             </li>
           ))}
         </ul>
-        {/* お知らせ一覧ページ (例: src/pages/news/index.astro) を
-          作成する場合は、以下のリンクを有効にしてください。
-          <div class="text-right mt-4">
-            <a href="/news/" class="text-sm font-medium text-orange-600 hover:text-orange-700">
-              お知らせ一覧を見る &rarr;
-            </a>
-          </div> 
-        */}
       </div>
     </section>
   )}
+
+  {allArticles.length > 0 && (
+    <section class="mb-10">
+      <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 border-2 border-blue-100">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+          <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 12h6m-1-4h.01"></path>
+          </svg>
+          新着記事
+        </h2>
+        <ul class="space-y-3">
+          {allArticles.map(article => (
+            <li class="border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
+              <a href={`/articles/${article.id}/`} class="group block">
+                <p class="text-sm text-gray-500 mb-1">
+                  {new Date(article.publishedAt).toLocaleDateString('ja-JP')}
+                </p>
+                <h3 class="font-semibold text-gray-700 group-hover:text-orange-600 transition-colors">
+                  {article.title}
+                </h3>
+              </a>
+            </li>
+          ))}
+        </ul>
+         <div class="text-right mt-4">
+            <a href="/articles/" class="text-sm font-medium text-orange-600 hover:text-orange-700">
+              記事一覧を見る &rarr;
+            </a>
+          </div> 
+      </div>
+    </section>
+  )}
+
   <section class="mb-10">
     <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 border-2 border-orange-100">
       <div class="flex items-center mb-6">
